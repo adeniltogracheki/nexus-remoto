@@ -1,9 +1,13 @@
-name: Build NexusRemote (Sciter - sem Flutter)
+name: Build Nexus Remoto (Sciter, Windows x64)
 
 on:
   workflow_dispatch:
   push:
-    branches: [master]
+    branches: [master, "nexus-remoto/**"]
+
+env:
+  VCPKG_COMMIT: 120deac3062162151622ca4860575a33844ba10b
+  VCPKG_DEFAULT_TRIPLET: x64-windows-static
 
 jobs:
   build-windows:
@@ -11,57 +15,92 @@ jobs:
     timeout-minutes: 120
 
     steps:
-      - name: Checkout
+      - name: Checkout (com submódulos)
         uses: actions/checkout@v4
         with:
           submodules: recursive
+          fetch-depth: 1
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: "1.75"
 
-      - name: Setup vcpkg
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: cargo-${{ runner.os }}-
+
+      - name: Install LLVM/Clang (bindgen precisa de libclang)
+        uses: KyleMayes/install-llvm-action@v2
+        with:
+          version: "15.0.2"
+          directory: ${{ runner.temp }}/llvm
+
+      - name: Cache vcpkg
+        uses: actions/cache@v4
+        with:
+          path: C:/vcpkg/installed
+          key: vcpkg-${{ runner.os }}-${{ env.VCPKG_COMMIT }}-libvpx-libyuv-opus-aom
+
+      - name: Setup vcpkg + libs (libvpx, libyuv, opus, aom)
         shell: bash
         run: |
-          if [ ! -d "/c/vcpkg" ]; then
+          set -e
+          if [ ! -d "/c/vcpkg/.git" ]; then
             git clone https://github.com/microsoft/vcpkg.git /c/vcpkg
           fi
           cd /c/vcpkg
-          git checkout 120deac3062162151622ca4860575a33844ba10b
-          ./bootstrap-vcpkg.bat
-          ./vcpkg install libvpx:x64-windows-static libyuv:x64-windows-static opus:x64-windows-static aom:x64-windows-static
+          git fetch --all --quiet
+          git checkout ${VCPKG_COMMIT}
+          ./bootstrap-vcpkg.bat -disableMetrics
+          ./vcpkg install --triplet=${VCPKG_DEFAULT_TRIPLET} libvpx libyuv opus aom
 
-      - name: Apply branding
+      - name: Baixar Sciter.dll (Sciter e linkado dinamicamente)
         shell: bash
         run: |
-          sed -i "s/name = \"rustdesk\"/name = \"nexusremote\"/g" Cargo.toml
-          sed -i "s/ProductName = \"RustDesk\"/ProductName = \"NexusRemote\"/g" Cargo.toml
-          sed -i "s/FileDescription = \"RustDesk Remote Desktop\"/FileDescription = \"NexusRemote Remote Desktop\"/g" Cargo.toml
-          sed -i "s/OriginalFilename = \"rustdesk.exe\"/OriginalFilename = \"nexusremote.exe\"/g" Cargo.toml
-          sed -i "s/default-run = \"rustdesk\"/default-run = \"nexusremote\"/g" Cargo.toml
-          if [ -f libs/hbb_common/src/config.rs ]; then
-            sed -i "s/\"RustDesk\"/\"NexusRemote\"/g" libs/hbb_common/src/config.rs
-          fi
-          echo "Branding applied"
+          set -e
+          mkdir -p sciter
+          curl -sL -o sciter/sciter.dll \
+            https://raw.githubusercontent.com/c-smile/sciter-sdk/master/bin.win/x64/sciter.dll
+          ls -la sciter/sciter.dll
 
-      - name: Build Sciter version
+      - name: Compilar (Sciter, release)
+        shell: bash
+        env:
+          VCPKG_ROOT: C:/vcpkg
+          LIBCLANG_PATH: ${{ runner.temp }}/llvm/bin
+        run: |
+          set -e
+          grep -F 'name = "nexusremote"'      Cargo.toml
+          grep -F 'ProductName = "Nexus Remoto"' Cargo.toml
+          grep -F '"Nexus Remoto".to_owned()'  libs/hbb_common/src/config.rs
+          grep -F '"remoto.gmtec.tec.br"'      libs/hbb_common/src/config.rs
+          grep -F 'eoR3Kpzpbn1Z8BPTnNAap2JdBzez3ybVDEtU2oizjXs=' libs/hbb_common/src/config.rs
+          echo "Branding OK. Compilando..."
+          cargo build --release --features inline
+          ls -la target/release/nexusremote.exe
+
+      - name: Empacotar (exe + sciter.dll)
         shell: bash
         run: |
-          export VCPKG_ROOT=/c/vcpkg
-          export LIBCLANG_PATH="/c/Program Files/LLVM/bin"
-          cargo build --release --features inline,vram
-          echo "Build completed"
-          ls -la target/release/nexusremote.exe 2>/dev/null || ls -la target/release/nexusremote* 2>/dev/null || ls -la target/release/*.exe 2>/dev/null
-
-      - name: Package
-        shell: bash
-        run: |
+          set -e
           mkdir -p output
-          cp target/release/nexusremote.exe output/ 2>/dev/null || cp target/release/nexusremote*.exe output/
+          cp target/release/nexusremote.exe output/
+          cp sciter/sciter.dll output/
+          echo "Servidor embutido: remoto.gmtec.tec.br"                       > output/README.txt
+          echo "Chave publica: eoR3Kpzpbn1Z8BPTnNAap2JdBzez3ybVDEtU2oizjXs="  >> output/README.txt
+          echo "WSS via 443 (WebSocket sempre ativo)"                         >> output/README.txt
           ls -la output/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: NexusRemote-Windows
+          name: nexus-remoto-windows-x64
           path: output/
           retention-days: 30
