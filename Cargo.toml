@@ -1,11 +1,11 @@
 [package]
-name = "nexusremote"
+name = "rustdesk"
 version = "1.4.8"
 authors = ["GMTec"]
 edition = "2021"
 build= "build.rs"
 description = "Nexus Remoto - Acesso Remoto"
-default-run = "nexusremote"
+default-run = "rustdesk"
 rust-version = "1.75"
 
 [lib]
@@ -216,9 +216,9 @@ libxdo-sys = { path = "libs/libxdo-sys-stub" }
 LegalCopyright = "Copyright © 2026 GMTec. All rights reserved."
 ProductName = "Nexus Remoto"
 FileDescription = "Nexus Remoto - Acesso Remoto"
-OriginalFilename = "nexusremote.exe"
+OriginalFilename = "rustdesk.exe"
 CompanyName = "GMTec"
-InternalName = "nexusremote"
+InternalName = "rustdesk"
 
 [target.'cfg(target_os="windows")'.build-dependencies]
 winres = "0.1"
