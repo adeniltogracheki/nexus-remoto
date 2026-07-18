@@ -2081,7 +2081,23 @@ pub fn rustdesk_interval(i: Interval) -> ThrottledInterval {
     ThrottledInterval::new(i)
 }
 
+// Nexus Remoto: trava as abas de configuração de servidor/rede pra que nenhum
+// usuário (técnico ou ponta) consiga ver ou alterar o servidor/relay/proxy/websocket
+// configurados. Isso é gerido centralmente pelo RMM, não pelo cliente.
+fn apply_nexus_remoto_hard_settings() {
+    let mut hard_settings = config::HARD_SETTINGS.write().unwrap();
+    for (k, v) in [
+        ("hide-server-settings", "Y"),
+        ("hide-network-settings", "Y"),
+        ("hide-proxy-settings", "Y"),
+        ("hide-websocket-settings", "Y"),
+    ] {
+        hard_settings.insert(k.to_owned(), v.to_owned());
+    }
+}
+
 pub fn load_custom_client() {
+    apply_nexus_remoto_hard_settings();
     #[cfg(debug_assertions)]
     if let Ok(data) = std::fs::read_to_string("./custom.txt") {
         read_custom_client(data.trim());
