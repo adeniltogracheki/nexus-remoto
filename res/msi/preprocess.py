@@ -458,8 +458,11 @@ def init_global_vars(dist_dir, app_name, args):
     dist_app = dist_dir.joinpath(app_name + ".exe")
 
     def read_process_output(args):
+        # dist_app pode conter espacos (ex: "Nexus Remoto.exe") - sem aspas,
+        # shell=True (cmd.exe) quebra o path no espaco e tenta rodar "Nexus"
+        # como comando, falhando com "nao reconhecido como comando".
         process = subprocess.Popen(
-            f"{dist_app} {args}",
+            f'"{dist_app}" {args}',
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             shell=True,
