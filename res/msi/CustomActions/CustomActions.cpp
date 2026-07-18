@@ -887,7 +887,7 @@ void TryCreateStartServiceByShell(LPWSTR svcName, LPWSTR svcBinary, LPWSTR szSvc
         }
     }
 
-    hr = StringCchPrintfW(szCmd, cchCmd, L"create %ls binpath= \"%ls\" start= auto DisplayName= \"%ls\"", svcName, szNewBin, szSvcDisplayName);
+    hr = StringCchPrintfW(szCmd, cchCmd, L"create \"%ls\" binpath= \"%ls\" start= auto DisplayName= \"%ls\"", svcName, szNewBin, szSvcDisplayName);
     if (FAILED(hr)) {
         WcaLog(LOGMSG_STANDARD, "Failed to make command: %ls", svcName);
         return;
@@ -928,7 +928,7 @@ void TryCreateStartServiceByShell(LPWSTR svcName, LPWSTR svcBinary, LPWSTR szSvc
         }
     }
 
-    hr = StringCchPrintfW(szCmd, cchCmd, L"/c sc start %ls", svcName);
+    hr = StringCchPrintfW(szCmd, cchCmd, L"/c sc start \"%ls\"", svcName);
     if (FAILED(hr)) {
         WcaLog(LOGMSG_STANDARD, "Failed to make command: %ls", svcName);
         return;
@@ -953,7 +953,7 @@ void TryStopDeleteServiceByShell(LPWSTR svcName)
 
     WcaLog(LOGMSG_STANDARD, "TryStopDeleteServiceByShell, service: %ls", svcName);
 
-    hr = StringCchPrintfW(szCmd, cchCmd, L"/c sc stop %ls", svcName);
+    hr = StringCchPrintfW(szCmd, cchCmd, L"/c sc stop \"%ls\"", svcName);
     if (FAILED(hr)) {
         WcaLog(LOGMSG_STANDARD, "Failed to make command: %ls", svcName);
         return;
@@ -978,7 +978,7 @@ void TryStopDeleteServiceByShell(LPWSTR svcName)
         WcaLog(LOGMSG_STANDARD, "Status of service: \"%ls\" with shell, current status: %d.", svcName, svcStatus.dwCurrentState);
     }
 
-    hr = StringCchPrintfW(szCmd, cchCmd, L"/c sc delete %ls", svcName);
+    hr = StringCchPrintfW(szCmd, cchCmd, L"/c sc delete \"%ls\"", svcName);
     if (FAILED(hr)) {
         WcaLog(LOGMSG_STANDARD, "Failed to make command: %ls", svcName);
         return;
