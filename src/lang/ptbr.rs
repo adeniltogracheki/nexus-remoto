@@ -171,7 +171,7 @@ pub static ref T: std::collections::HashMap<&'static str, &'static str> =
         ("Local Address", "Endereço Local"),
         ("Change Local Port", "Alterar Porta Local"),
         ("setup_server_tip", "Para uma conexão mais rápida, por favor configure seu próprio servidor"),
-        ("configured_own_server_tip", "Configurado com servidor Nexus RMM"),
+        ("configured_own_server_tip", "Conectado ao servidor Nexus RMM"),
         ("Too short, at least 6 characters.", "Muito curto, pelo menos 6 caracteres."),
         ("The confirmation is not identical.", "A confirmação não é idêntica."),
         ("Permissions", "Permissões"),
