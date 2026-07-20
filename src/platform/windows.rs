@@ -1499,6 +1499,8 @@ fn get_after_install(
 ) -> String {
     let app_name = crate::get_app_name();
     let ext = app_name.to_lowercase();
+    // Esquema de URL SEM espaço (RFC) para o protocolo nexusremoto:// — deve casar com get_uri_prefix().
+    let scheme = ext.replace(' ', "");
 
     // reg delete HKEY_CURRENT_USER\Software\Classes for
     // https://github.com/rustdesk/rustdesk/commit/f4bdfb6936ae4804fc8ab1cf560db192622ad01a
@@ -1539,12 +1541,12 @@ fn get_after_install(
     reg add HKEY_CLASSES_ROOT\\.{ext}\\shell\\open /f
     reg add HKEY_CLASSES_ROOT\\.{ext}\\shell\\open\\command /f
     reg add HKEY_CLASSES_ROOT\\.{ext}\\shell\\open\\command /f /ve /t REG_SZ /d \"\\\"{exe}\\\" --play \\\"%%1\\\"\"
-    reg add HKEY_CLASSES_ROOT\\{ext} /f
-    reg add HKEY_CLASSES_ROOT\\{ext} /f /v \"URL Protocol\" /t REG_SZ /d \"\"
-    reg add HKEY_CLASSES_ROOT\\{ext}\\shell /f
-    reg add HKEY_CLASSES_ROOT\\{ext}\\shell\\open /f
-    reg add HKEY_CLASSES_ROOT\\{ext}\\shell\\open\\command /f
-    reg add HKEY_CLASSES_ROOT\\{ext}\\shell\\open\\command /f /ve /t REG_SZ /d \"\\\"{exe}\\\" \\\"%%1\\\"\"
+    reg add HKEY_CLASSES_ROOT\\{scheme} /f
+    reg add HKEY_CLASSES_ROOT\\{scheme} /f /v \"URL Protocol\" /t REG_SZ /d \"\"
+    reg add HKEY_CLASSES_ROOT\\{scheme}\\shell /f
+    reg add HKEY_CLASSES_ROOT\\{scheme}\\shell\\open /f
+    reg add HKEY_CLASSES_ROOT\\{scheme}\\shell\\open\\command /f
+    reg add HKEY_CLASSES_ROOT\\{scheme}\\shell\\open\\command /f /ve /t REG_SZ /d \"\\\"{exe}\\\" \\\"%%1\\\"\"
     netsh advfirewall firewall add rule name=\"{app_name} Service\" dir=out action=allow program=\"{exe}\" enable=yes
     netsh advfirewall firewall add rule name=\"{app_name} Service\" dir=in action=allow program=\"{exe}\" enable=yes
     {create_service}

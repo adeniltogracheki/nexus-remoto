@@ -1012,7 +1012,9 @@ pub fn is_rustdesk() -> bool {
 
 #[inline]
 pub fn get_uri_prefix() -> String {
-    format!("{}://", get_app_name().to_lowercase())
+    // Esquema de URL SEM espaços (RFC): "Nexus Remoto" -> "nexusremoto://".
+    // O nome com espaço quebraria links de navegador (rustdesk://... deep link).
+    format!("{}://", get_app_name().to_lowercase().replace(' ', ""))
 }
 
 #[cfg(target_os = "macos")]
