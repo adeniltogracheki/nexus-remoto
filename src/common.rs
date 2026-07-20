@@ -2085,18 +2085,30 @@ pub fn rustdesk_interval(i: Interval) -> ThrottledInterval {
     ThrottledInterval::new(i)
 }
 
-// Nexus Remoto: trava as abas de configuração de servidor/rede pra que nenhum
-// usuário (técnico ou ponta) consiga ver ou alterar o servidor/relay/proxy/websocket
-// configurados. Isso é gerido centralmente pelo RMM, não pelo cliente.
+// Nexus Remoto: gerido centralmente pelo RMM. Esconde as abas de servidor/rede/
+// proxy/websocket (ninguem ve nem altera o servidor configurado) e deixa acesso
+// completo como padrao ao aceitar conexoes.
 fn apply_nexus_remoto_hard_settings() {
-    let mut hard_settings = config::HARD_SETTINGS.write().unwrap();
-    for (k, v) in [
-        ("hide-server-settings", "Y"),
-        ("hide-network-settings", "Y"),
-        ("hide-proxy-settings", "Y"),
-        ("hide-websocket-settings", "Y"),
-    ] {
-        hard_settings.insert(k.to_owned(), v.to_owned());
+    // As opcoes "hide-*-settings" sao lidas pela UI via get_builtin_option() ->
+    // BUILTIN_SETTINGS (nao HARD_SETTINGS). Precisam estar nesse store pra funcionar.
+    {
+        let mut builtin = config::BUILTIN_SETTINGS.write().unwrap();
+        for (k, v) in [
+            ("hide-server-settings", "Y"),
+            ("hide-network-settings", "Y"),
+            ("hide-proxy-settings", "Y"),
+            ("hide-websocket-settings", "Y"),
+        ] {
+            builtin.insert(k.to_owned(), v.to_owned());
+        }
+    }
+    // Acesso completo por padrao: get_option() consulta DEFAULT_SETTINGS como fallback,
+    // entao numa maquina recem-provisionada o modo de acesso ja vem "full".
+    {
+        let mut defaults = config::DEFAULT_SETTINGS.write().unwrap();
+        defaults
+            .entry("access-mode".to_owned())
+            .or_insert_with(|| "full".to_owned());
     }
 }
 
