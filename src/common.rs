@@ -2032,7 +2032,11 @@ pub fn create_symmetric_key_msg(their_pk_b: [u8; 32]) -> (Bytes, Bytes, secretbo
 
 #[inline]
 pub fn using_public_server() -> bool {
-    crate::get_custom_rendezvous_server(get_option("custom-rendezvous-server")).is_empty()
+    // Nexus Remoto: o servidor self-hosted (remoto.gmtec.tec.br) vem embutido no
+    // binario (RENDEZVOUS_SERVERS/RS_PUB_KEY), nao via a opcao custom-rendezvous-server.
+    // Este fork nunca usa o servidor publico do RustDesk, entao sempre retornamos false
+    // (mostra "Conectado ao servidor Nexus RMM" e desliga o aviso de configurar servidor).
+    false
 }
 
 pub struct ThrottledInterval {
