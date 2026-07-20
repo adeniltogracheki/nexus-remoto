@@ -2098,6 +2098,10 @@ fn apply_nexus_remoto_hard_settings() {
             ("hide-network-settings", "Y"),
             ("hide-proxy-settings", "Y"),
             ("hide-websocket-settings", "Y"),
+            // Oculta a aba de Seguranca (onde ficam senha permanente/2FA): o usuario da
+            // maquina nao pode ver nem definir uma senha propria. So o RMM define a senha
+            // aleatoria via --password. Sem senha conhecida, ninguem conecta na maquina.
+            ("hide-security-settings", "Y"),
         ] {
             builtin.insert(k.to_owned(), v.to_owned());
         }
