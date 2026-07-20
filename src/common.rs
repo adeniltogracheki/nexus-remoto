@@ -2110,6 +2110,19 @@ fn apply_nexus_remoto_hard_settings() {
             .entry("access-mode".to_owned())
             .or_insert_with(|| "full".to_owned());
     }
+    // SENHA OCULTA: forca senha PERMANENTE (definida pelo RMM) e desativa a senha
+    // temporaria. Com verification-method = use-permanent-password a UI mostra "-"
+    // no lugar da senha (server_model.dart) — o usuario da maquina nunca ve uma
+    // senha usavel. approve-mode = password garante acesso nao-assistido (sem clique
+    // de aceitar). Vai em OVERWRITE_SETTINGS pra NAO poder ser alterado localmente.
+    {
+        let mut overwrite = config::OVERWRITE_SETTINGS.write().unwrap();
+        overwrite.insert(
+            "verification-method".to_owned(),
+            "use-permanent-password".to_owned(),
+        );
+        overwrite.insert("approve-mode".to_owned(), "password".to_owned());
+    }
 }
 
 pub fn load_custom_client() {
