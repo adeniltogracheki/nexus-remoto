@@ -447,8 +447,8 @@ class _CmHeaderState extends State<_CmHeader>
           begin: Alignment.topRight,
           end: Alignment.bottomLeft,
           colors: [
-            Color(0xff00c88c),
-            Color(0xff00b37e),
+            Color(0xff1c1c1e),
+            Color(0xff0a0a0a),
           ],
         ),
       ),
@@ -583,7 +583,7 @@ class _CmHeaderState extends State<_CmHeader>
       height: 70,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: str2color(client.name),
+        color: const Color(0xff00b37e),
         borderRadius: BorderRadius.circular(15.0),
       ),
       child: Text(
