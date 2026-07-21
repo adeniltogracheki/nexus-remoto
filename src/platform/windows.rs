@@ -1899,11 +1899,21 @@ fn run_cmds(cmds: String, show: bool, tip: &str) -> ResultType<()> {
     let tmp_fn = tmp.to_str().unwrap_or("");
     // https://github.com/rustdesk/rustdesk/issues/6786#issuecomment-1879655410
     // Specify cmd.exe explicitly to avoid the replacement of cmd commands.
-    let res = runas::Command::new("cmd.exe")
-        .args(&["/C", &tmp_fn])
-        .show(show)
-        .force_prompt(true)
-        .status();
+    // Se JA estamos elevados (ex.: servico do agente Nexus rodando como SYSTEM na
+    // sessao 0), roda cmd.exe DIRETO — o runas (ShellExecute "runas") falha em
+    // sessao 0 por nao ter desktop interativo para elevar, entao a instalacao
+    // silenciosa via SYSTEM nao acontecia. Ja elevado nao precisa re-elevar.
+    let res = if is_elevated(None).unwrap_or(false) {
+        std::process::Command::new("cmd.exe")
+            .args(&["/C", &tmp_fn])
+            .status()
+    } else {
+        runas::Command::new("cmd.exe")
+            .args(&["/C", &tmp_fn])
+            .show(show)
+            .force_prompt(true)
+            .status()
+    };
     if !show {
         allow_err!(std::fs::remove_file(tmp));
     }
